@@ -25,7 +25,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y python3-pip python3-setuptools git zip unzip openjdk-17-jdk
-          pip install buildozer
+          pip install buildozer cython
 
       - name: Run Buildozer
         run: |
