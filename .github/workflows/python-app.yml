@@ -3,23 +3,23 @@ name: Build APK
 on:
   push:
     branches:
-      - main  # Запускать сборку при пуше в ветку main
+      - main
   pull_request:
     branches:
-      - main  # Запускать сборку при пул-реквесте в ветку main
+      - main
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # Используем последнюю версию Ubuntu
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3  # Клонируем репозиторий
+        uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'  # Указываем версию Python
+          python-version: '3.9'
 
       - name: Install dependencies
         run: |
@@ -32,33 +32,32 @@ jobs:
           mkdir -p ~/.android
           touch ~/.android/repositories.cfg
 
-          # Скачиваем Android Command Line Tools
+          # Download and extract Android Command Line Tools
           wget https://dl.google.com/android/repository/commandlinetools-linux-6609375_latest.zip -O /tmp/android-sdk.zip
-          unzip /tmp/android-sdk.zip -d /tmp/android-sdk
+          unzip /tmp/android-sdk.zip -d ~/.android/cmdline-tools
 
-          # Проверяем структуру распакованных файлов
-          ls -la /tmp/android-sdk
+          # Rename and move to the correct directory
+          mv ~/.android/cmdline-tools/cmdline-tools ~/.android/cmdline-tools/tools
 
-          # Создаем директорию для Android SDK
-          mkdir -p ~/.android/cmdline-tools
-
-          # Перемещаем tools в правильную директорию
-          mv /tmp/android-sdk/tools ~/.android/cmdline-tools/tools
-
-          # Настраиваем переменные окружения
+          # Set environment variables
           echo "ANDROID_HOME=$HOME/.android" >> $GITHUB_ENV
           echo "ANDROID_SDK_ROOT=$HOME/.android" >> $GITHUB_ENV
-          echo "PATH=$PATH:$HOME/.android/cmdline-tools/tools/bin" >> $GITHUB_ENV
+          echo "$HOME/.android/cmdline-tools/tools/bin:$HOME/.android/build-tools/31.0.0:$HOME/.android/platform-tools:$PATH" >> $GITHUB_ENV
 
-          # Принимаем лицензии Android SDK
-          yes | $HOME/.android/cmdline-tools/tools/bin/sdkmanager --licenses
+          # Load updated PATH
+          source $GITHUB_ENV
 
-          # Устанавливаем необходимые компоненты
-          $HOME/.android/cmdline-tools/tools/bin/sdkmanager "build-tools;31.0.0" "platform-tools" "platforms;android-31"
+          # Accept licenses
+          yes | ~/.android/cmdline-tools/tools/bin/sdkmanager --licenses
 
-          # Проверяем наличие AIDL
-          $HOME/.android/build-tools/31.0.0/aidl --version || echo "AIDL not found, installing..."
-          echo "PATH=$PATH:$HOME/.android/build-tools/31.0.0" >> $GITHUB_ENV
+          # Install required SDK components
+          ~/.android/cmdline-tools/tools/bin/sdkmanager "build-tools;31.0.0" "platform-tools" "platforms;android-31"
+
+          # Verify AIDL installation
+          if [ ! -f "$HOME/.android/build-tools/31.0.0/aidl" ]; then
+            echo "AIDL not found, installation failed!"
+            exit 1
+          fi
 
       - name: Run Buildozer
         run: |
@@ -68,4 +67,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: app-debug.apk
-          path: bin/*.apk  # Путь к собранному APK
+          path: bin/*.apk
