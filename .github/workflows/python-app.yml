@@ -43,12 +43,15 @@ jobs:
           # Set environment variables
           echo "ANDROID_HOME=$HOME/.android" >> $GITHUB_ENV
           echo "ANDROID_SDK_ROOT=$HOME/.android" >> $GITHUB_ENV
-          echo "$HOME/.android/cmdline-tools/latest/bin:$HOME/.android/build-tools/31.0.0:$HOME/.android/platform-tools:$PATH" >> $GITHUB_ENV
+          echo "$HOME/.android/cmdline-tools/latest/bin" >> $GITHUB_ENV
+          echo "$HOME/.android/build-tools/31.0.0" >> $GITHUB_ENV
+          echo "$HOME/.android/platform-tools" >> $GITHUB_ENV
 
           # Load updated PATH
-          source $GITHUB_ENV
+          echo "PATH=$HOME/.android/cmdline-tools/latest/bin:$HOME/.android/build-tools/31.0.0:$HOME/.android/platform-tools:$PATH" >> $GITHUB_ENV
 
           # Accept licenses
+          source $GITHUB_ENV
           yes | ~/.android/cmdline-tools/latest/bin/sdkmanager --licenses
 
           # Install required SDK components
