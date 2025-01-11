@@ -36,24 +36,29 @@ jobs:
           wget https://dl.google.com/android/repository/commandlinetools-linux-6609375_latest.zip -O /tmp/android-sdk.zip
           unzip /tmp/android-sdk.zip -d /tmp/android-sdk
 
-          # Перемещаем tools в правильную директорию
+          # Проверяем структуру распакованных файлов
+          ls -la /tmp/android-sdk
+
+          # Создаем директорию для Android SDK
           mkdir -p ~/.android/cmdline-tools
+
+          # Перемещаем tools в правильную директорию
           mv /tmp/android-sdk/cmdline-tools ~/.android/cmdline-tools/tools
 
           # Настраиваем переменные окружения
-          echo "ANDROID_HOME=~/.android" >> $GITHUB_ENV
-          echo "ANDROID_SDK_ROOT=~/.android" >> $GITHUB_ENV
-          echo "PATH=$PATH:$ANDROID_HOME/cmdline-tools/tools/bin" >> $GITHUB_ENV
+          echo "ANDROID_HOME=$HOME/.android" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=$HOME/.android" >> $GITHUB_ENV
+          echo "PATH=$PATH:$HOME/.android/cmdline-tools/tools/bin" >> $GITHUB_ENV
 
           # Принимаем лицензии Android SDK
-          yes | ~/.android/cmdline-tools/tools/bin/sdkmanager --licenses
+          yes | $HOME/.android/cmdline-tools/tools/bin/sdkmanager --licenses
 
           # Устанавливаем необходимые компоненты
-          ~/.android/cmdline-tools/tools/bin/sdkmanager "build-tools;30.0.3" "platform-tools" "platforms;android-30"
+          $HOME/.android/cmdline-tools/tools/bin/sdkmanager "build-tools;30.0.3" "platform-tools" "platforms;android-30"
 
           # Проверяем наличие AIDL
-          $ANDROID_HOME/build-tools/30.0.3/aidl --version || echo "AIDL not found, installing..."
-          echo "PATH=$PATH:$ANDROID_HOME/build-tools/30.0.3" >> $GITHUB_ENV
+          $HOME/.android/build-tools/30.0.3/aidl --version || echo "AIDL not found, installing..."
+          echo "PATH=$PATH:$HOME/.android/build-tools/30.0.3" >> $GITHUB_ENV
 
       - name: Run Buildozer
         run: |
