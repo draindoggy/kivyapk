@@ -1,0 +1,39 @@
+name: Build APK
+
+on:
+  push:
+    branches:
+      - main  # Запускать сборку при пуше в ветку main
+  pull_request:
+    branches:
+      - main  # Запускать сборку при пул-реквесте в ветку main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # Используем последнюю версию Ubuntu
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3  # Клонируем репозиторий
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'  # Указываем версию Python
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pip python3-setuptools git zip unzip openjdk-17-jdk
+          pip install buildozer
+
+      - name: Run Buildozer
+        run: |
+          buildozer init
+          buildozer -v android debug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-debug.apk
+          path: bin/*.apk  # Путь к собранному APK
