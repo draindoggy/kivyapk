@@ -43,21 +43,18 @@ jobs:
           # Set environment variables
           echo "ANDROID_HOME=$HOME/.android" >> $GITHUB_ENV
           echo "ANDROID_SDK_ROOT=$HOME/.android" >> $GITHUB_ENV
-          echo "$HOME/.android/cmdline-tools/latest/bin" >> $GITHUB_ENV
-          echo "$HOME/.android/build-tools/31.0.0" >> $GITHUB_ENV
-          echo "$HOME/.android/platform-tools" >> $GITHUB_ENV
 
-          # Load updated PATH
+          # Add Android tools to PATH
           echo "PATH=$HOME/.android/cmdline-tools/latest/bin:$HOME/.android/build-tools/31.0.0:$HOME/.android/platform-tools:$PATH" >> $GITHUB_ENV
 
-          # Accept licenses
+      - name: Accept SDK licenses and install components
+        run: |
           source $GITHUB_ENV
           yes | ~/.android/cmdline-tools/latest/bin/sdkmanager --licenses
-
-          # Install required SDK components
           ~/.android/cmdline-tools/latest/bin/sdkmanager "build-tools;31.0.0" "platform-tools" "platforms;android-31"
 
-          # Verify AIDL installation
+      - name: Verify AIDL installation
+        run: |
           if [ ! -f "$HOME/.android/build-tools/31.0.0/aidl" ]; then
             echo "AIDL not found, installation failed!"
             exit 1
