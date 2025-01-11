@@ -54,11 +54,11 @@ jobs:
           yes | $HOME/.android/cmdline-tools/tools/bin/sdkmanager --licenses
 
           # Устанавливаем необходимые компоненты
-          $HOME/.android/cmdline-tools/tools/bin/sdkmanager "build-tools;30.0.3" "platform-tools" "platforms;android-30"
+          $HOME/.android/cmdline-tools/tools/bin/sdkmanager "build-tools;31.0.0" "platform-tools" "platforms;android-31"
 
           # Проверяем наличие AIDL
-          $HOME/.android/build-tools/30.0.3/aidl --version || echo "AIDL not found, installing..."
-          echo "PATH=$PATH:$HOME/.android/build-tools/30.0.3" >> $GITHUB_ENV
+          $HOME/.android/build-tools/31.0.0/aidl --version || echo "AIDL not found, installing..."
+          echo "PATH=$PATH:$HOME/.android/build-tools/31.0.0" >> $GITHUB_ENV
 
       - name: Run Buildozer
         run: |
