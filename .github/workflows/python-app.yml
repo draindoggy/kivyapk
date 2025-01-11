@@ -43,7 +43,7 @@ jobs:
           mkdir -p ~/.android/cmdline-tools
 
           # Перемещаем tools в правильную директорию
-          mv /tmp/android-sdk/cmdline-tools ~/.android/cmdline-tools/tools
+          mv /tmp/android-sdk/tools ~/.android/cmdline-tools/tools
 
           # Настраиваем переменные окружения
           echo "ANDROID_HOME=$HOME/.android" >> $GITHUB_ENV
