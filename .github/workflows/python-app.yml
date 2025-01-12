@@ -52,9 +52,6 @@ jobs:
           # Устанавливаем необходимые компоненты
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
 
-          # Проверяем, что aidl доступен
-          $ANDROID_HOME/build-tools/33.0.2/aidl --version
-
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
