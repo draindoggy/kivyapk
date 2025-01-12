@@ -19,57 +19,50 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'  # Указываем версию Python
+          python-version: '3.9'  # Указываем версию Python
 
-      - name: Install system dependencies
+      - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y python3-pip python3-setuptools git zip unzip openjdk-17-jdk libffi-dev libssl-dev
-
-      - name: Install Android SDK and Build-Tools
-        run: |
-          # Создаем директорию для Android SDK
-          mkdir -p ~/.buildozer/android/platform/android-sdk
-
-          # Скачиваем Command Line Tools
-          cd ~/.buildozer/android/platform/android-sdk
-          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
-          unzip commandlinetools-linux-9477386_latest.zip -d cmdline-tools
-          rm commandlinetools-linux-9477386_latest.zip
-
-          # Переименовываем директорию для корректной работы sdkmanager
-          mv cmdline-tools/cmdline-tools cmdline-tools/latest
-
-          # Настраиваем переменные окружения
-          echo "export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk" >> $GITHUB_ENV
-          echo "export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH" >> $GITHUB_ENV
-          echo "export PATH=$ANDROID_HOME/platform-tools:$PATH" >> $GITHUB_ENV
-          echo "export PATH=$ANDROID_HOME/build-tools/36.0.0-rc3:$PATH" >> $GITHUB_ENV
-
-          # Копируем предварительно принятые лицензии из репозитория
-          mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
-          cp -r android-licenses/* ~/.buildozer/android/platform/android-sdk/licenses/
-
-          # Устанавливаем необходимые компоненты
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;36.0.0-rc3"
-
-          # Проверяем, что build-tools установлены
-          ls -la $ANDROID_HOME/build-tools/36.0.0-rc3
-
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
+          sudo apt-get install -y python3-pip python3-setuptools git zip unzip openjdk-17-jdk
           pip install buildozer cython
 
-      - name: Initialize Buildozer (if spec file does not exist)
+      - name: Set up Android SDK
         run: |
-          if [ ! -f buildozer.spec ]; then
-            buildozer init
-          else
-            echo "buildozer.spec already exists, skipping initialization."
-          fi
+          mkdir -p ~/.android
+          touch ~/.android/repositories.cfg
 
-      - name: Build APK with Buildozer
+          # Скачиваем Android Command Line Tools
+          wget https://dl.google.com/android/repository/commandlinetools-linux-6609375_latest.zip -O /tmp/android-sdk.zip
+          unzip /tmp/android-sdk.zip -d /tmp/android-sdk
+
+          # Проверяем структуру распакованных файлов
+          ls -la /tmp/android-sdk
+
+          # Создаем директорию для Android SDK
+          mkdir -p ~/.android/cmdline-tools
+
+          # Перемещаем tools в правильную директорию
+          mv /tmp/android-sdk/tools ~/.android/cmdline-tools/tools
+
+          # Настраиваем переменные окружения
+          echo "ANDROID_HOME=$HOME/.android" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=$HOME/.android" >> $GITHUB_ENV
+          echo "PATH=$PATH:$HOME/.android/cmdline-tools/tools/bin" >> $GITHUB_ENV
+
+          # Принимаем лицензии Android SDK
+          mkdir -p ~/.android/licenses
+          echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55\nd56f5187479451eabf01fb78af6dfcb131a6481e" > ~/.android/licenses/android-sdk-license
+          echo -e "84831b9409646a918e30573bab4c9c91346d8abd" > ~/.android/licenses/android-sdk-preview-license
+
+          # Устанавливаем необходимые компоненты
+          $HOME/.android/cmdline-tools/tools/bin/sdkmanager "build-tools;31.0.0" "platform-tools" "platforms;android-31"
+
+          # Проверяем наличие AIDL
+          $HOME/.android/build-tools/31.0.0/aidl --version || echo "AIDL not found, installing..."
+          echo "PATH=$PATH:$HOME/.android/build-tools/31.0.0" >> $GITHUB_ENV
+
+      - name: Run Buildozer
         run: |
           buildozer -v android debug
 
