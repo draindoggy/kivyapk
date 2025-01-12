@@ -52,6 +52,9 @@ jobs:
           # Устанавливаем необходимые компоненты
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
 
+          # Проверяем, что build-tools установлены
+          ls -la $ANDROID_HOME/build-tools/33.0.2
+
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
