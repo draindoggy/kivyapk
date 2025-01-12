@@ -24,7 +24,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y python3-pip python3-setuptools git zip unzip openjdk-17-jdk libffi-dev libssl-dev
+          sudo apt-get install -y python3-pip python3-setuptools git zip unzip openjdk-17-jdk libffi-dev libssl-dev expect
 
       - name: Install Android SDK and Build-Tools
         run: |
@@ -46,8 +46,16 @@ jobs:
           echo "export PATH=$ANDROID_HOME/platform-tools:$PATH" >> $GITHUB_ENV
           echo "export PATH=$ANDROID_HOME/build-tools/36.0.0-rc3:$PATH" >> $GITHUB_ENV
 
-          # Принимаем лицензии Android SDK
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          # Используем expect для автоматического принятия лицензий
+          echo "Installing Android SDK licenses..."
+          expect -c '
+            set timeout -1
+            spawn $env(ANDROID_HOME)/cmdline-tools/latest/bin/sdkmanager --licenses
+            expect {
+              "y/N" { send "y\r"; exp_continue }
+              eof
+            }
+          '
 
           # Устанавливаем необходимые компоненты
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;36.0.0-rc3"
