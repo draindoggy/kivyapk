@@ -7,61 +7,23 @@ on:
   pull_request:
     branches:
       - main  # Запускать сборку при пул-реквесте в ветку main
-
 jobs:
   build:
-    runs-on: ubuntu-latest  # Используем последнюю версию Ubuntu
-
+    runs-on: ubuntu-latest
+    container: circleci/android:api-33
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3  # Клонируем репозиторий
+        uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'  # Указываем версию Python
+          python-version: '3.10'
 
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y python3-pip python3-setuptools git zip unzip openjdk-17-jdk libffi-dev libssl-dev expect
-
-      - name: Install Android SDK and Build-Tools
-        run: |
-          # Создаем директорию для Android SDK
-          mkdir -p ~/android-sdk
-
-          # Скачиваем Command Line Tools
-          cd ~/android-sdk
-          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
-          unzip commandlinetools-linux-9477386_latest.zip -d cmdline-tools
-          rm commandlinetools-linux-9477386_latest.zip
-
-          # Переименовываем директорию для корректной работы sdkmanager
-          mv cmdline-tools/cmdline-tools cmdline-tools/latest
-
-          # Настраиваем переменные окружения
-          echo "export ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
-          echo "export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH" >> $GITHUB_ENV
-          echo "export PATH=$ANDROID_HOME/platform-tools:$PATH" >> $GITHUB_ENV
-          echo "export PATH=$ANDROID_HOME/build-tools/36.0.0-rc3:$PATH" >> $GITHUB_ENV
-
-          # Используем expect для автоматического принятия лицензий
-          echo "Installing Android SDK licenses..."
-          expect -c '
-            set timeout -1
-            spawn $env(ANDROID_HOME)/cmdline-tools/latest/bin/sdkmanager --licenses
-            expect {
-              "y/N" { send "y\r"; exp_continue }
-              eof
-            }
-          '
-
-          # Устанавливаем необходимые компоненты
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;36.0.0-rc3"
-
-          # Проверяем, что build-tools установлены
-          ls -la $ANDROID_HOME/build-tools/36.0.0-rc3
+          sudo apt-get install -y python3-pip python3-setuptools git zip unzip openjdk-17-jdk libffi-dev libssl-dev
 
       - name: Install Python dependencies
         run: |
@@ -84,4 +46,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: app-debug.apk
-          path: bin/*.apk  # Путь к собранному APK
+          path: bin/*.apk
