@@ -3,36 +3,36 @@ name: Build APK
 on:
   push:
     branches:
-      - main
+      - main  # Запускать сборку при пуше в ветку main
   pull_request:
     branches:
-      - main
+      - main  # Запускать сборку при пул-реквесте в ветку main
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # Используем последнюю версию Ubuntu
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3  # Клонируем репозиторий
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: '3.10'  # Указываем версию Python
 
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y python3-pip python3-setuptools git zip unzip openjdk-17-jdk libffi-dev libssl-dev expect
+          sudo apt-get install -y python3-pip python3-setuptools git zip unzip openjdk-17-jdk libffi-dev libssl-dev
 
       - name: Install Android SDK and Build-Tools
         run: |
           # Создаем директорию для Android SDK
-          mkdir -p ~/android-sdk
+          mkdir -p ~/.buildozer/android/platform/android-sdk
 
           # Скачиваем Command Line Tools
-          cd ~/android-sdk
+          cd ~/.buildozer/android/platform/android-sdk
           wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
           unzip commandlinetools-linux-9477386_latest.zip -d cmdline-tools
           rm commandlinetools-linux-9477386_latest.zip
@@ -41,34 +41,24 @@ jobs:
           mv cmdline-tools/cmdline-tools cmdline-tools/latest
 
           # Настраиваем переменные окружения
-          echo "export ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
+          echo "export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk" >> $GITHUB_ENV
           echo "export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH" >> $GITHUB_ENV
           echo "export PATH=$ANDROID_HOME/platform-tools:$PATH" >> $GITHUB_ENV
-          echo "export PATH=$ANDROID_HOME/build-tools/34.0.0:$PATH" >> $GITHUB_ENV
+          echo "export PATH=$ANDROID_HOME/build-tools/36.0.0-rc3:$PATH" >> $GITHUB_ENV
 
-           # Используем expect для автоматического ввода "y" для принятия лицензий
-          echo "Принимаем лицензии Android SDK..."
-          expect -c '
-            set timeout 60
-            spawn $env(ANDROID_HOME)/cmdline-tools/latest/bin/sdkmanager --licenses
-            expect {
-              "Do you accept the license" { send "y\r"; exp_continue }
-              "All SDK package licenses accepted." { exit 0 }
-              timeout { exit 1 }
-              eof { exit 1 }
-           }
-           exit 0
-          ' || { echo "Failed to accept licenses"; exit 1; }
+          # Копируем предварительно принятые лицензии из репозитория
+          mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
+          cp -r android-licenses/* ~/.buildozer/android/platform/android-sdk/licenses/
 
           # Устанавливаем необходимые компоненты
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;34.0.0"
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;36.0.0-rc3"
 
           # Проверяем, что build-tools установлены
-          ls -la $ANDROID_HOME/build-tools/34.0.0
+          ls -la $ANDROID_HOME/build-tools/36.0.0-rc3
 
       - name: Install Python dependencies
         run: |
-          python -m pip install --upgrade pip setuptools
+          python -m pip install --upgrade pip
           pip install buildozer cython
 
       - name: Initialize Buildozer (if spec file does not exist)
@@ -78,13 +68,13 @@ jobs:
           else
             echo "buildozer.spec already exists, skipping initialization."
           fi
+
       - name: Build APK with Buildozer
         run: |
-            buildozer -v android debug
-        working-directory: . # Убедиться, что сборка идёт в папке проекта
+          buildozer -v android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v3
         with:
           name: app-debug.apk
-          path: bin/*.apk
+          path: bin/*.apk  # Путь к собранному APK
