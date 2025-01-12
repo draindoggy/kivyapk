@@ -44,16 +44,16 @@ jobs:
           echo "export ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
           echo "export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH" >> $GITHUB_ENV
           echo "export PATH=$ANDROID_HOME/platform-tools:$PATH" >> $GITHUB_ENV
-          echo "export PATH=$ANDROID_HOME/build-tools/33.0.2:$PATH" >> $GITHUB_ENV
+          echo "export PATH=$ANDROID_HOME/build-tools/36.0.0-rc3:$PATH" >> $GITHUB_ENV
 
           # Принимаем лицензии Android SDK
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
 
           # Устанавливаем необходимые компоненты
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;36.0.0-rc3"
 
           # Проверяем, что build-tools установлены
-          ls -la $ANDROID_HOME/build-tools/33.0.2
+          ls -la $ANDROID_HOME/build-tools/36.0.0-rc3
 
       - name: Install Python dependencies
         run: |
