@@ -31,9 +31,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install buildozer cython
 
-      - name: Initialize Buildozer
+      - name: Initialize Buildozer (if spec file does not exist)
         run: |
-          buildozer init
+          if [ ! -f buildozer.spec ]; then
+            buildozer init
+          else
+            echo "buildozer.spec already exists, skipping initialization."
+          fi
 
       - name: Build APK with Buildozer
         run: |
