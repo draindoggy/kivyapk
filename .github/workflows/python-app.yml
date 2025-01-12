@@ -26,6 +26,26 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y python3-pip python3-setuptools git zip unzip openjdk-17-jdk libffi-dev libssl-dev
 
+      - name: Install Android SDK and Build-Tools
+        run: |
+          # Устанавливаем Android SDK
+          mkdir -p ~/android-sdk
+          cd ~/android-sdk
+          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+          unzip commandlinetools-linux-9477386_latest.zip
+          rm commandlinetools-linux-9477386_latest.zip
+
+          # Устанавливаем переменные окружения для Android SDK
+          echo "export ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
+          echo "export PATH=$ANDROID_HOME/cmdline-tools/tools/bin:$PATH" >> $GITHUB_ENV
+          echo "export PATH=$ANDROID_HOME/platform-tools:$PATH" >> $GITHUB_ENV
+
+          # Принимаем лицензии Android SDK
+          yes | sdkmanager --licenses
+
+          # Устанавливаем необходимые компоненты
+          sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
+
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
