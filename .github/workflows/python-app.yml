@@ -46,10 +46,10 @@ jobs:
           echo "export PATH=$ANDROID_HOME/platform-tools:$PATH" >> $GITHUB_ENV
 
           # Принимаем лицензии Android SDK
-          yes | sdkmanager --licenses
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
 
           # Устанавливаем необходимые компоненты
-          sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
 
       - name: Install Python dependencies
         run: |
