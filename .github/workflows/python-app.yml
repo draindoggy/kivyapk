@@ -3,64 +3,39 @@ name: Build APK
 on:
   push:
     branches:
-      - main
+      - main  # Запускать сборку при пуше в ветку main
   pull_request:
     branches:
-      - main
+      - main  # Запускать сборку при пул-реквесте в ветку main
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # Используем последнюю версию Ubuntu
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3  # Клонируем репозиторий
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.10'  # Указываем версию Python
 
-      - name: Install dependencies
+      - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y python3-pip python3-setuptools git zip unzip openjdk-17-jdk
+          sudo apt-get install -y python3-pip python3-setuptools git zip unzip openjdk-17-jdk libffi-dev libssl-dev
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
           pip install buildozer cython
 
-      - name: Set up Android SDK
+      - name: Initialize Buildozer
         run: |
-          mkdir -p ~/.android
-          touch ~/.android/repositories.cfg
+          buildozer init
 
-          # Download and extract Android Command Line Tools
-          wget https://dl.google.com/android/repository/commandlinetools-linux-6609375_latest.zip -O /tmp/android-sdk.zip
-          unzip /tmp/android-sdk.zip -d ~/.android/cmdline-tools
-
-          # Move extracted files to 'latest' directory
-          mkdir -p ~/.android/cmdline-tools/latest
-          mv ~/.android/cmdline-tools/tools/* ~/.android/cmdline-tools/latest/
-
-          # Set environment variables
-          echo "ANDROID_HOME=$HOME/.android" >> $GITHUB_ENV
-          echo "ANDROID_SDK_ROOT=$HOME/.android" >> $GITHUB_ENV
-
-          # Add Android tools to PATH
-          echo "PATH=$HOME/.android/cmdline-tools/latest/bin:$HOME/.android/build-tools/31.0.0:$HOME/.android/platform-tools:$PATH" >> $GITHUB_ENV
-
-      - name: Accept SDK licenses and install components
-        run: |
-          source $GITHUB_ENV
-          yes | ~/.android/cmdline-tools/latest/bin/sdkmanager --licenses
-          ~/.android/cmdline-tools/latest/bin/sdkmanager "build-tools;31.0.0" "platform-tools" "platforms;android-31"
-
-      - name: Verify AIDL installation
-        run: |
-          if [ ! -f "$HOME/.android/build-tools/31.0.0/aidl" ]; then
-            echo "AIDL not found, installation failed!"
-            exit 1
-          fi
-
-      - name: Run Buildozer
+      - name: Build APK with Buildozer
         run: |
           buildozer -v android debug
 
@@ -68,4 +43,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: app-debug.apk
-          path: bin/*.apk
+          path: bin/*.apk  # Путь к собранному APK
