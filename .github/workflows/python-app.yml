@@ -28,16 +28,22 @@ jobs:
 
       - name: Install Android SDK and Build-Tools
         run: |
-          # Устанавливаем Android SDK
+          # Создаем директорию для Android SDK
           mkdir -p ~/android-sdk
+
+          # Скачиваем Command Line Tools
           cd ~/android-sdk
           wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
           unzip commandlinetools-linux-9477386_latest.zip
           rm commandlinetools-linux-9477386_latest.zip
 
-          # Устанавливаем переменные окружения для Android SDK
+          # Создаем директорию для tools (требуется для корректной работы sdkmanager)
+          mkdir -p ~/android-sdk/cmdline-tools/latest
+          mv ~/android-sdk/cmdline-tools/* ~/android-sdk/cmdline-tools/latest/
+
+          # Настраиваем переменные окружения
           echo "export ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
-          echo "export PATH=$ANDROID_HOME/cmdline-tools/tools/bin:$PATH" >> $GITHUB_ENV
+          echo "export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH" >> $GITHUB_ENV
           echo "export PATH=$ANDROID_HOME/platform-tools:$PATH" >> $GITHUB_ENV
 
           # Принимаем лицензии Android SDK
